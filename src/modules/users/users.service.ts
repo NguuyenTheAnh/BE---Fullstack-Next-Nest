@@ -11,7 +11,9 @@ import aqp from 'api-query-params';
 @Injectable()
 export class UsersService {
 
-  constructor(@InjectModel(User.name) private UserModel: SoftDeleteModel<UserDocument>) { }
+  constructor(
+    @InjectModel(User.name) private UserModel: SoftDeleteModel<UserDocument>
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     // check email exist
