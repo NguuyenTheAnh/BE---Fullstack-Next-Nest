@@ -8,13 +8,15 @@ import { User, UserDocument } from '@/modules/users/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
+import { MailService } from '@/mail/mail.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectModel(User.name) private UserModel: SoftDeleteModel<UserDocument>,
         private usersService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private readonly mailService: MailService
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -51,14 +53,15 @@ export class AuthService {
             ...registerDto,
             password: cipher,
             codeId: uuidv4(),
-            codeExpired: dayjs().add(1, 'minutes')
+            codeExpired: dayjs().add(5, 'minutes')
         });
+
+        // send email
+        this.mailService.registerMail(newUser);
 
         // return response
         return {
             _id: newUser._id
         }
-
-        // send email 
     }
 }

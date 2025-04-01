@@ -13,6 +13,7 @@ import { OrderDetailModule } from './modules/order.detail/order.detail.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AuthModule } from './auth/auth.module';
     RestaurantsModule,
     ReviewsModule,
     AuthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
