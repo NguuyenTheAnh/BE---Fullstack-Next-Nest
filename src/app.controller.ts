@@ -2,9 +2,8 @@ import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common'
 import { AppService } from './app.service';
 import { LocalAuthGuard } from './auth/guard/local-auth.guard';
 import { AuthService } from './auth/auth.service';
-import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
 import { Public, ResponseMessage } from './decorator/customize';
-import { RegisterDto } from './auth/dto/auth.dto';
+import { RegisterDto, VerifyDto } from './auth/dto/auth.dto';
 
 @Controller()
 export class AppController {
@@ -23,9 +22,24 @@ export class AppController {
   }
 
   @Public()
+  @ResponseMessage('User Register')
   @Post('auth/register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Public()
+  @ResponseMessage('Verify User')
+  @Post('auth/verify')
+  async verify(@Body() verifyDto: VerifyDto) {
+    return this.authService.verify(verifyDto);
+  }
+
+  @Public()
+  @ResponseMessage('Resend code to verify user')
+  @Post('auth/resend')
+  async resend(@Body('email') email: string) {
+    return this.authService.resend(email);
   }
 
   @Get('profile')

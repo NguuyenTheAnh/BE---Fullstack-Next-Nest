@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 export class MailService {
     constructor(private readonly mailerService: MailerService) { }
 
-    async registerMail(user: any) {
+    async activeMail(user: any) {
         await this.mailerService.sendMail({
             to: user.email,
             from: '"Support team" <modules@nestjs.com>', // sender address

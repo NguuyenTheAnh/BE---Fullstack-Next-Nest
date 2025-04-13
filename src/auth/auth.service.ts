@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { comparePasswordHelper, hashPasswordHelper } from '@/helpers/util';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from './dto/auth.dto';
+import { RegisterDto, VerifyDto } from './dto/auth.dto';
 import { SoftDeleteModel } from 'mongoose-delete';
 import { User, UserDocument } from '@/modules/users/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -62,11 +62,53 @@ export class AuthService {
         });
 
         // send email
-        this.mailService.registerMail(newUser);
+        this.mailService.activeMail(newUser);
 
         // return response
         return {
             _id: newUser._id
         }
+    }
+
+    async verify(verifyDto: VerifyDto) {
+        const user = await this.UserModel.findOne({
+            _id: verifyDto._id,
+            codeId: verifyDto.code
+        });
+        if (!user) {
+            throw new BadRequestException("Mã code không đúng hoặc đã hết hạn");
+        }
+
+        // check code expire
+        const isCodeExpired = dayjs().isAfter(user.codeExpired);
+        if (isCodeExpired) {
+            throw new BadRequestException("Mã code không đúng hoặc đã hết hạn");
+        }
+        await this.UserModel.updateOne({ _id: verifyDto._id }, { isActive: true })
+        return {
+            isCodeExpired
+        }
+    }
+
+    async resend(email: string) {
+        // check email
+        const user = await this.UserModel.findOne({ email });
+        if (!user) throw new BadRequestException('Tài khoản không tồn tại');
+        if (user.isActive) throw new BadRequestException('Tài khoản đã được kích hoạt');
+
+        // gen code
+        const codeId = uuidv4();
+        const codeExpired = dayjs().add(5, 'minutes');
+        await this.UserModel.updateOne({ email }, { codeId, codeExpired })
+        const updateUser = await this.UserModel.findOne({ email })
+
+
+        // send mail
+        this.mailService.activeMail(updateUser);
+
+        return {
+            _id: user._id
+        }
+
     }
 }

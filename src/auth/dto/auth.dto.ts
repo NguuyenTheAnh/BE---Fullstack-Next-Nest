@@ -11,3 +11,12 @@ export class RegisterDto {
     @IsNotEmpty({ message: "Password can not be emptied" })
     password: string;
 }
+
+export class VerifyDto {
+
+    @IsNotEmpty({ message: "_id can not be emptied" })
+    _id: string;
+
+    @IsNotEmpty({ message: "Code can not be emptied" })
+    code: string;
+}
