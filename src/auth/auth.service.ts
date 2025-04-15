@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { comparePasswordHelper, hashPasswordHelper } from '@/helpers/util';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto, VerifyDto } from './dto/auth.dto';
+import { ChangePasswordDto, RegisterDto, VerifyDto } from './dto/auth.dto';
 import { SoftDeleteModel } from 'mongoose-delete';
 import { User, UserDocument } from '@/modules/users/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -108,6 +108,55 @@ export class AuthService {
 
         return {
             _id: user._id
+        }
+
+    }
+
+    async forgotPassword(email: string) {
+        // check email
+        const user = await this.UserModel.findOne({ email });
+        if (!user) throw new BadRequestException('Tài khoản không tồn tại');
+
+        // gen code
+        const codeId = uuidv4();
+        const codeExpired = dayjs().add(5, 'minutes');
+        await this.UserModel.updateOne({ email }, { codeId, codeExpired })
+        const updateUser = await this.UserModel.findOne({ email })
+
+
+        // send mail
+        this.mailService.changePasswordMail(updateUser);
+
+        return {
+            _id: user._id,
+            email
+        }
+    }
+
+    async changePassword(changePasswordDto: ChangePasswordDto) {
+        const { password, confirmPassword, code, email } = changePasswordDto;
+
+        // check valid confirmPassword
+        if (password !== confirmPassword) {
+            throw new BadRequestException("Mật khẩu/xác nhận mật khẩu không hợp lệ")
+        }
+
+        // check email
+        const user = await this.UserModel.findOne({ email });
+        if (!user) throw new BadRequestException('Tài khoản không tồn tại');
+
+        // check code expire
+        const isCodeExpired = dayjs().isAfter(user.codeExpired);
+        if (isCodeExpired) {
+            throw new BadRequestException("Mã code không đúng hoặc đã hết hạn");
+        }
+
+        // update user's password
+        const cipherNewPassword = hashPasswordHelper(password);
+        await this.UserModel.updateOne({ email }, { password: cipherNewPassword });
+
+        return {
+            isCodeExpired
         }
 
     }

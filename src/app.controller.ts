@@ -3,7 +3,7 @@ import { AppService } from './app.service';
 import { LocalAuthGuard } from './auth/guard/local-auth.guard';
 import { AuthService } from './auth/auth.service';
 import { Public, ResponseMessage } from './decorator/customize';
-import { RegisterDto, VerifyDto } from './auth/dto/auth.dto';
+import { ChangePasswordDto, RegisterDto, VerifyDto } from './auth/dto/auth.dto';
 
 @Controller()
 export class AppController {
@@ -40,6 +40,20 @@ export class AppController {
   @Post('auth/resend')
   async resend(@Body('email') email: string) {
     return this.authService.resend(email);
+  }
+
+  @Public()
+  @ResponseMessage('Forgot password')
+  @Post('auth/forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Public()
+  @ResponseMessage('Forgot password')
+  @Post('auth/change-password')
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(changePasswordDto);
   }
 
   @Get('profile')
